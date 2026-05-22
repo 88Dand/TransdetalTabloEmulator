@@ -116,6 +116,7 @@ load_state()
 def validate_payload(data):
     required = ["type", "version", "datetime", "pattern"]
 
+    # обязательные поля
     for field in required:
         if field not in data:
             return False, {
@@ -125,39 +126,66 @@ def validate_payload(data):
                 "pattern": 8
             }.get(field, 4)
 
-    if data["pattern"] not in [0, 1, 2]:
+    pattern = data["pattern"]
+
+    # проверка pattern
+    if pattern not in [0, 1, 2]:
         return False, 10
 
-pattern = data["pattern"]
-rules = PATTERN_RULES[pattern]
+    # правила шаблонов
+    pattern_rules = {
+        0: {
+            "max_rows": 4,
+            "images": {
+                "car", "ecar", "moto", "2car"
+            }
+        },
 
-max_rows = rules["max_rows"]
-allowed_images = rules["images"]
+        1: {
+            "max_rows": 3,
+            "images": {
+                "car", "ecar", "moto", "2car"
+            }
+        },
 
-# проверяем строки
-for i in range(1, 6):
-    key = f"str{i}"
+        2: {
+            "max_rows": 1,
+            "images": {
+                "car", "ecar", "moto", "2car",
+                "arrow_up", "arrow_down",
+                "arrow_left", "arrow_right"
+            }
+        }
+    }
 
-    if key not in data:
-        continue
+    rules = pattern_rules[pattern]
+    max_rows = rules["max_rows"]
+    allowed_images = rules["images"]
 
-    # проверка лимита строк
-    if i > max_rows:
-        return False, 4
+    # проверка строк
+    for i in range(1, 6):
+        key = f"str{i}"
 
-    row = data[key]
+        if key not in data:
+            continue
 
-    # проверка img
-    if "img" in row:
-        if row["img"] not in allowed_images:
+        # проверка количества строк
+        if i > max_rows:
             return False, 4
 
-    # text должен быть integer
-    if "text" in row:
-        try:
-            int(row["text"])
-        except:
-            return False, 4
+        row = data[key]
+
+        # img
+        if "img" in row:
+            if row["img"] not in allowed_images:
+                return False, 4
+
+        # text только integer
+        if "text" in row:
+            try:
+                int(row["text"])
+            except:
+                return False, 4
 
     return True, 0
 
