@@ -162,25 +162,25 @@ def validate_payload(data):
     max_rows = rules["max_rows"]
     allowed_images = rules["images"]
 
-    # проверка строк
+    # проверяем строки
     for i in range(1, 6):
         key = f"str{i}"
 
         if key not in data:
             continue
 
-        # проверка количества строк
+        # проверка лимита строк
         if i > max_rows:
             return False, 4
 
         row = data[key]
 
-        # img
+        # проверка img
         if "img" in row:
             if row["img"] not in allowed_images:
                 return False, 4
 
-        # text только integer
+        # text должен быть integer
         if "text" in row:
             try:
                 int(row["text"])
